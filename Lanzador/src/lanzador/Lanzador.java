@@ -22,10 +22,14 @@ public class Lanzador {
 
     public static Conexion con = new Conexion();
     public static Connection cn = con.conectar();
-
+    
+    
+    //nombre de programa
+    private static String programa="apetatitlan";
+    
     public static void main(String[] args) {
-        //nombre de programa,
-        String programa="apetatitlan";
+        
+        
         //iniciamosla la variable de la version actual
         Double actual = 0D;
         //leemos desde la bd si hay nueva version
@@ -34,26 +38,26 @@ public class Lanzador {
         //pasamos a valor double el archivo de texto
         try {
             actual = Double.valueOf(version());
+            System.out.println(actual);
 
         } catch (IOException ex) {
             Logger.getLogger(Lanzador.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
         //con los valores comparamos
         if (nuevo > actual) {
             System.out.println("Actualizamos");
             //se encontro nueva version, se procede a descargar y actualizar
-            descargar();
+            Actualizador actualizador=new Actualizador();
+            //mandamos el nombre del sistema
+            actualizador.txtSistema.setText(programa);
+            actualizador.mostrarCambios();
+            actualizador.setVisible(true);
         } else {
-
-            //no hay cambios se ejecuta el software
-            try {
-                //ruta y nombre del ejecutable
-                String ejecutable = "calc.exe";
-                Process p = Runtime.getRuntime().exec(ejecutable);
-            } catch (Exception error) {
-                System.out.println("no encuentro el ejecutable");
-            }
+            //como no hay nueva version ejecutamos nuestro sistema
+            Ejecutable ejecuta=new Ejecutable();
+           ejecuta.lanzar();
+            
         }
 
     }
@@ -64,7 +68,7 @@ public class Lanzador {
         Double actual = 0D;
         try {
             Statement st = cn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT version FROM software WHERE programa='programa'");
+            ResultSet rs = st.executeQuery("SELECT version FROM sistema WHERE nombre='"+programa+"'");
             while (rs.next()) {
                 c_actual = rs.getString("version");
             }
@@ -84,44 +88,6 @@ public class Lanzador {
             version = cadena;
         }
         b.close();
-        System.out.println(version);
         return version;
-    }
-
-    private static void descargar() {
-        String url=null;
-        try {
-            //leemos el nombre y la direccion de archivo a descargar
-
-            Statement st = cn.createStatement();
-            ResultSet rs=st.executeQuery("SELECT origin FROM software");
-            while (rs.next()){
-                url=rs.getString("origin");
-            }
-            File file = new File ("actualiza.rar");
-            try {
-                URLConnection conn = new URL(url).openConnection();
-                conn.connect();
-                
-                InputStream in = conn.getInputStream();
-                OutputStream out=new FileOutputStream(file);
-                int b=0;
-                while (b!=-1){
-                    b=in.read();
-                    if (b!=-1)
-                        out.write(b);
-                }
-                out.close();
-                in.close();
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(Lanzador.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(Lanzador.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(Lanzador.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        
-    }
+    } 
 }

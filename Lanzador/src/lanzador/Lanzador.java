@@ -50,15 +50,11 @@ public class Lanzador {
         
         //con los valores comparamos
         if (nuevo > actual) {
-            System.out.println("Actualizamos");
+            System.out.println("Actualizamos "+programa);
             //se encontro nueva version, se procede a descargar y actualizar
-            Actualizador actualizador=new Actualizador();
-            //mandamos el nombre del sistema
-            /*
-            actualizador.txtSistema.setText(programa);
-            actualizador.mostrarCambios();
+            Actualizador actualizador=new Actualizador(programa);
             actualizador.setVisible(true);
-*/
+
         } else {
             //como no hay nueva version ejecutamos nuestro sistema
             Ejecutable ejecuta=new Ejecutable();

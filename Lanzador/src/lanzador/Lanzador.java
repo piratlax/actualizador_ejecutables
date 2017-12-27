@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -20,8 +21,11 @@ import java.util.logging.Logger;
 
 public class Lanzador {
 
-    public static Conexion con = new Conexion();
-    public static Connection cn = con.conectar();
+   static Conexion con = new Conexion();
+  
+    ResultSet rs;
+    Statement st;
+    PreparedStatement ps; 
     
     
     //nombre de programa
@@ -50,9 +54,11 @@ public class Lanzador {
             //se encontro nueva version, se procede a descargar y actualizar
             Actualizador actualizador=new Actualizador();
             //mandamos el nombre del sistema
+            /*
             actualizador.txtSistema.setText(programa);
             actualizador.mostrarCambios();
             actualizador.setVisible(true);
+*/
         } else {
             //como no hay nueva version ejecutamos nuestro sistema
             Ejecutable ejecuta=new Ejecutable();
@@ -66,6 +72,8 @@ public class Lanzador {
 
         String c_actual = "0";
         Double actual = 0D;
+        Connection cn = con.conectar();
+        
         try {
             Statement st = cn.createStatement();
             ResultSet rs = st.executeQuery("SELECT version FROM sistema WHERE nombre='"+programa+"'");

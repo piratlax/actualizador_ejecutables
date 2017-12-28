@@ -1,6 +1,21 @@
-
 package lanzador;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileOwnerAttributeView;
+import java.nio.file.attribute.UserPrincipal;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,12 +24,14 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Actualizador extends javax.swing.JFrame  {
+public class Actualizador extends javax.swing.JFrame {
+
     public String nombre;
-    
-    String version,cambios,ruta;
+
+    String version, cambios, ruta;
+
     public Actualizador(String programa) {
-        nombre=programa;
+        nombre = programa;
         initComponents();
         this.setLocationRelativeTo(null);
         //buscamos en la bd sus valores
@@ -25,24 +42,23 @@ public class Actualizador extends javax.swing.JFrame  {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-  
-    private void asignarValores(){
+    private void asignarValores() {
         //Obtenemos el nombre
-       
-        String sql="SELECT * FROM sistema WHERE nombre='"+nombre+"'";
+
+        String sql = "SELECT * FROM sistema WHERE nombre='" + nombre + "'";
         //creamos conexion;
         Conexion con = new Conexion();
-        Connection cn=con.conectar();
+        Connection cn = con.conectar();
         System.out.println("1");
         try {
-            Statement st=cn.createStatement();
-            ResultSet rs=st.executeQuery(sql);
+            Statement st = cn.createStatement();
+            ResultSet rs = st.executeQuery(sql);
             System.out.println("2");
             System.out.println(nombre);
-            while (rs.next()){
-                version=rs.getString("version");
-                cambios=rs.getString("cambios");
-                ruta=rs.getString("ruta");
+            while (rs.next()) {
+                version = rs.getString("version");
+                cambios = rs.getString("cambios");
+                ruta = rs.getString("ruta");
                 System.out.println("3");
             }
             txtSistema.setText(nombre);
@@ -51,9 +67,9 @@ public class Actualizador extends javax.swing.JFrame  {
         } catch (SQLException ex) {
             Logger.getLogger(Actualizador.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
-   
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -68,8 +84,8 @@ public class Actualizador extends javax.swing.JFrame  {
         jScrollPane1 = new javax.swing.JScrollPane();
         txtCambios = new javax.swing.JTextArea();
         jPanel2 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        btnActualizar = new javax.swing.JButton();
+        btnMasTarde = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Nueva Version encontrada");
@@ -141,9 +157,19 @@ public class Actualizador extends javax.swing.JFrame  {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        jButton1.setText("Actualizar");
+        btnActualizar.setText("Actualizar");
+        btnActualizar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnActualizarActionPerformed(evt);
+            }
+        });
 
-        jButton2.setText("Mas tarde");
+        btnMasTarde.setText("Mas tarde");
+        btnMasTarde.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMasTardeActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -151,9 +177,9 @@ public class Actualizador extends javax.swing.JFrame  {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jButton1)
+                .addComponent(btnActualizar)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton2)
+                .addComponent(btnMasTarde)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -161,8 +187,8 @@ public class Actualizador extends javax.swing.JFrame  {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
+                    .addComponent(btnActualizar)
+                    .addComponent(btnMasTarde))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -191,6 +217,67 @@ public class Actualizador extends javax.swing.JFrame  {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnMasTardeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMasTardeActionPerformed
+        Ejecutable ejecutable = new Ejecutable();
+        ejecutable.lanzar();
+        System.exit(0);
+    }//GEN-LAST:event_btnMasTardeActionPerformed
+
+    private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActualizarActionPerformed
+        String url = ruta; //dirección url del recurso a descargar
+        String name = "instalador.exe"; //nombre del archivo destino
+        //Directorio destino para las descargas
+        String folder = "descargas/";
+
+//Crea el directorio de destino en caso de que no exista
+        File dir = new File(folder);
+
+        if (!dir.exists()) {
+            if (!dir.mkdir()) {
+                return; // no se pudo crear la carpeta de destino
+            }
+        }
+        File file = new File(folder + name);
+
+        URLConnection conn;
+        try {
+            conn = new URL(url).openConnection();
+            conn.connect();
+            System.out.println("\nempezando descarga: \n");
+            System.out.println(">> URL: " + url);
+            System.out.println(">> Nombre: " + name);
+            System.out.println(">> tamaño: " + conn.getContentLength() + " bytes");
+
+            InputStream in = conn.getInputStream();
+            OutputStream out = new FileOutputStream(file);
+
+            int b = 0;
+            while (b != -1) {
+                b = in.read();
+                if (b != -1) {
+                    out.write(b);
+                }
+            }
+            out.close();
+            in.close();
+            
+                 
+            try {
+                /* directorio/ejecutable es el path del ejecutable y un nombre */
+                Process p = Runtime.getRuntime().exec("descargas/lanzador.bat");
+
+            } catch (IOException e) {
+                /* Se lanza una excepción si no se encuentra en ejecutable o el fichero no es ejecutable. */
+                System.out.println("no se encontro el ejecutable");
+            }
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(Actualizador.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Actualizador.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_btnActualizarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -222,15 +309,15 @@ public class Actualizador extends javax.swing.JFrame  {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                
+
                 new Actualizador().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton btnActualizar;
+    private javax.swing.JButton btnMasTarde;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

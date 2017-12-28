@@ -42,7 +42,6 @@ public class Lanzador {
         //pasamos a valor double el archivo de texto
         try {
             actual = Double.valueOf(version());
-            System.out.println(actual);
 
         } catch (IOException ex) {
             Logger.getLogger(Lanzador.class.getName()).log(Level.SEVERE, null, ex);
@@ -50,7 +49,7 @@ public class Lanzador {
         
         //con los valores comparamos
         if (nuevo > actual) {
-            System.out.println("Actualizamos "+programa);
+           
             //se encontro nueva version, se procede a descargar y actualizar
             Actualizador actualizador=new Actualizador(programa);
             actualizador.setVisible(true);

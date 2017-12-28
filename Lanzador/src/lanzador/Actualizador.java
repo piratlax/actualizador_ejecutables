@@ -8,16 +8,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.FileOwnerAttributeView;
-import java.nio.file.attribute.UserPrincipal;
-import java.nio.file.attribute.UserPrincipalLookupService;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,7 +30,7 @@ public class Actualizador extends javax.swing.JFrame {
     }
 
     private Actualizador() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("No soportado todavia"); //To change body of generated methods, choose Tools | Templates.
     }
 
     private void asignarValores() {
@@ -49,17 +40,14 @@ public class Actualizador extends javax.swing.JFrame {
         //creamos conexion;
         Conexion con = new Conexion();
         Connection cn = con.conectar();
-        System.out.println("1");
         try {
             Statement st = cn.createStatement();
             ResultSet rs = st.executeQuery(sql);
-            System.out.println("2");
             System.out.println(nombre);
             while (rs.next()) {
                 version = rs.getString("version");
                 cambios = rs.getString("cambios");
                 ruta = rs.getString("ruta");
-                System.out.println("3");
             }
             txtSistema.setText(nombre);
             txtVersion.setText(version);

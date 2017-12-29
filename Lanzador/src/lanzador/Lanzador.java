@@ -1,16 +1,9 @@
 package lanzador;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -46,7 +39,7 @@ public class Lanzador {
         } catch (IOException ex) {
             Logger.getLogger(Lanzador.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+        System.out.println ("el nuevo es "+nuevo+" el actual "+actual);
         //con los valores comparamos
         if (nuevo > actual) {
            

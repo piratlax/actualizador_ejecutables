@@ -1,5 +1,7 @@
 package lanzador;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,12 +16,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingWorker;
 
 public class Actualizador extends javax.swing.JFrame {
 
     public String nombre;
-
+    private ActionListener al;
     String version, cambios, ruta;
+    int valor = 1;
+    int maximo = 0;
+    long Porciento = 0;
+    Thread barra = new Thread() {
+        public void run() {
+            jProgreso.setValue((int) Porciento);
+        }
+    };
 
     public Actualizador(String programa) {
         nombre = programa;
@@ -71,9 +82,10 @@ public class Actualizador extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtCambios = new javax.swing.JTextArea();
-        jPanel2 = new javax.swing.JPanel();
+        visor = new javax.swing.JPanel();
         btnActualizar = new javax.swing.JButton();
         btnMasTarde = new javax.swing.JButton();
+        jProgreso = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Nueva Version encontrada");
@@ -143,7 +155,7 @@ public class Actualizador extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        visor.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
         btnActualizar.setText("Actualizar");
         btnActualizar.addActionListener(new java.awt.event.ActionListener() {
@@ -159,24 +171,31 @@ public class Actualizador extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        jProgreso.setStringPainted(true);
+
+        javax.swing.GroupLayout visorLayout = new javax.swing.GroupLayout(visor);
+        visor.setLayout(visorLayout);
+        visorLayout.setHorizontalGroup(
+            visorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(visorLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnActualizar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnMasTarde)
+                .addGroup(visorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jProgreso, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(visorLayout.createSequentialGroup()
+                        .addComponent(btnActualizar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnMasTarde)))
                 .addContainerGap())
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        visorLayout.setVerticalGroup(
+            visorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(visorLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(visorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnActualizar)
                     .addComponent(btnMasTarde))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jProgreso, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -190,17 +209,16 @@ public class Actualizador extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(visor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(66, Short.MAX_VALUE))
+                .addComponent(visor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -211,60 +229,77 @@ public class Actualizador extends javax.swing.JFrame {
         ejecutable.lanzar();
         System.exit(0);
     }//GEN-LAST:event_btnMasTardeActionPerformed
+    public class hiloDescargar implements Runnable {
 
-    private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActualizarActionPerformed
-        String url = ruta; //dirección url del recurso a descargar
-        String name = "instalador.exe"; //nombre del archivo destino
-        //Directorio destino para las descargas
-        String folder = "descargas/";
+        String ar;
+
+        public hiloDescargar(String ar) {
+
+            this.ar = ar;
+        }
+
+        @Override
+        public void run() {
+            try {
+
+                String name = "instalador.exe"; //nombre del archivo destino
+                //Directorio destino para las descargas
+                String folder = "descargas/";
 
 //Crea el directorio de destino en caso de que no exista
-        File dir = new File(folder);
+                File dir = new File(folder);
 
-        if (!dir.exists()) {
-            if (!dir.mkdir()) {
-                return; // no se pudo crear la carpeta de destino
-            }
-        }
-        File file = new File(folder + name);
-
-        URLConnection conn;
-        try {
-            conn = new URL(url).openConnection();
-            conn.connect();
-            System.out.println("\nempezando descarga: \n");
-            System.out.println(">> URL: " + url);
-            System.out.println(">> Nombre: " + name);
-            System.out.println(">> tamaño: " + conn.getContentLength() + " bytes");
-
-            InputStream in = conn.getInputStream();
-            OutputStream out = new FileOutputStream(file);
-
-            int b = 0;
-            while (b != -1) {
-                b = in.read();
-                if (b != -1) {
-                    out.write(b);
+                if (!dir.exists()) {
+                    if (!dir.mkdir()) {
+                        return; // no se pudo crear la carpeta de destino
+                    }
                 }
-            }
-            out.close();
-            in.close();
-            
-                 
-            try {
-                /* directorio/ejecutable es el path del ejecutable y un nombre */
-                Process p = Runtime.getRuntime().exec("descargas/lanzador.bat");
+                File file = new File(folder + name);
 
+               
+                URL url = new URL(ar);
+                URLConnection urlCon = url.openConnection();
+                //Creamos un archivo para la descarga igual que el archivo remoto
+                File file2 = new File(url.toString());
+               
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    InputStream is = urlCon.getInputStream();
+                    byte[] array = new byte[1000];
+                    int leido = is.read(array);
+                    //Aplicando valores a la barra de progreso
+                    int maximo = urlCon.getContentLength();
+                    jProgreso.setMinimum(0);
+                    jProgreso.setMaximum(maximo);
+                    jProgreso.setValue(0);
+                    int actual = 0;
+                    while (leido > 0) {
+                        fos.write(array, 0, leido);
+                        leido = is.read(array);
+                        jProgreso.setValue(actual);
+                        actual += leido;
+                        jProgreso.setString("Descargando " + actual + "/" + maximo + " bytes");
+                    }
+                    fos.close();
+                }
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(hiloDescargar.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(hiloDescargar.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                // directorio/ejecutable es el path del ejecutable y un nombre 
+                Process p = Runtime.getRuntime().exec("descargas/instalador.exe");
+                System.exit(0);
             } catch (IOException e) {
-                /* Se lanza una excepción si no se encuentra en ejecutable o el fichero no es ejecutable. */
+                //Se lanza una excepción si no se encuentra en ejecutable o el fichero no es ejecutable. 
                 System.out.println("no se encontro el ejecutable");
             }
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(Actualizador.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Actualizador.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+    }
+    private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActualizarActionPerformed
+        hiloDescargar h = new hiloDescargar(ruta);
+        Thread t = new Thread(h);
+        t.start();
     }//GEN-LAST:event_btnActualizarActionPerformed
 
     /**
@@ -281,16 +316,24 @@ public class Actualizador extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Actualizador.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Actualizador.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Actualizador.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Actualizador.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Actualizador.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Actualizador.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Actualizador.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Actualizador.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -299,6 +342,7 @@ public class Actualizador extends javax.swing.JFrame {
             public void run() {
 
                 new Actualizador().setVisible(true);
+
             }
         });
     }
@@ -311,10 +355,11 @@ public class Actualizador extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JProgressBar jProgreso;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea txtCambios;
     public static javax.swing.JLabel txtSistema;
     private javax.swing.JLabel txtVersion;
+    private javax.swing.JPanel visor;
     // End of variables declaration//GEN-END:variables
 }

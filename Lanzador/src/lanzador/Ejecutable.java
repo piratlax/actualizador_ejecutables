@@ -8,7 +8,7 @@ public class Ejecutable {
         try 
 { 
    /* directorio/ejecutable es el path del ejecutable y un nombre */ 
-   Process p = Runtime.getRuntime().exec ("prueba.exe");
+   Process p = Runtime.getRuntime().exec ("contenido.exe");
 } 
 catch (IOException e) 
 { 
